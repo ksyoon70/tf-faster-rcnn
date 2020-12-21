@@ -2,3 +2,6 @@ __pycache__
 logs/*
 data/*
 trained/*
+VOC2007/*
+VOCdevkit/*
+tf-faster-rcnn.code-workspace

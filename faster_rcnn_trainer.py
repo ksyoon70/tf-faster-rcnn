@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
 from utils import io_utils, data_utils, train_utils, bbox_utils
 from models import faster_rcnn
@@ -10,9 +11,14 @@ if args.handle_gpu:
 batch_size = 4
 epochs = 50
 load_weights = False
-with_voc_2012 = True
+#with_voc_2012 = True
+with_voc_2012 = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+print(BASE_DIR)
 
 if backbone == "mobilenet_v2":
     from models.rpn_mobilenet_v2 import get_model as get_rpn_model
@@ -34,7 +40,7 @@ if with_voc_2012:
 
 labels = data_utils.get_labels(dataset_info)
 # We add 1 class for background
-hyper_params["total_labels"] = len(labels) + 1
+hyper_params["total_labels"] = len(labels) + 1 #백그라운드를 위한 클래스 추가
 #
 img_size = hyper_params["img_size"]
 train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size, apply_augmentation=True))
