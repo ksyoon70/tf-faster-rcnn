@@ -132,12 +132,20 @@ def generate_iou_map(bboxes, gt_boxes):
     outputs:
         iou_map = (batch_size, total_bboxes, total_gt_boxes)
     """
+    # Splits a tensor value into a list of sub tensors. 
+    # axis = 0 이라는건 가장 높은 차원을 기준
+    #axis = 1 은 두 번째로 높은 차원을 기준으로 합치는 것이다. 
+    #2차원 자료라면 -> 1차원을 기준으로 붙이고
+    #3차원 자료라면 -> 2차원을 기준으로 붙이면 된다.
+    #axis = -1 은 가장 낮은 차원 뒤쪽에서부터 시작한다. 
+    #자료가 2차원이고 axis = -1 이면 1차원에서 붙이라는 의미이다.
     bbox_y1, bbox_x1, bbox_y2, bbox_x2 = tf.split(bboxes, 4, axis=-1)
     gt_y1, gt_x1, gt_y2, gt_x2 = tf.split(gt_boxes, 4, axis=-1)
     # Calculate bbox and ground truth boxes areas
+    #squeeze는 차원 중 사이즈가 1인 것을 찾아 스칼라값으로 바꿔 해당 차원을 제거한다.
     gt_area = tf.squeeze((gt_y2 - gt_y1) * (gt_x2 - gt_x1), axis=-1)
     bbox_area = tf.squeeze((bbox_y2 - bbox_y1) * (bbox_x2 - bbox_x1), axis=-1)
-    #
+    #tf.transpose(전치할 행렬, 차원의 순서, [오퍼레이션 명칭])
     x_top = tf.maximum(bbox_x1, tf.transpose(gt_x1, [0, 2, 1]))
     y_top = tf.maximum(bbox_y1, tf.transpose(gt_y1, [0, 2, 1]))
     x_bottom = tf.minimum(bbox_x2, tf.transpose(gt_x2, [0, 2, 1]))
