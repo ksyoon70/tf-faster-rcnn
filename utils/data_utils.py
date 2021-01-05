@@ -67,8 +67,8 @@ def flip_horizontally(img, gt_boxes):
                                 1.0 - gt_boxes[..., 1]], -1)
     return flipped_img, flipped_gt_boxes
 
-#def get_dataset(name, split, data_dir="~/tensorflow_datasets"):
-def get_dataset(name, split, data_dir="./VOCdevkit/VOC2007"):
+def get_dataset(name, split, data_dir="~/tensorflow_datasets"):
+#def get_dataset(name, split, data_dir="./VOCdevkit/VOC2007"):
     """Get tensorflow dataset split and info.
     inputs:
         name = name of the dataset, voc/2007, voc/2012, etc.
