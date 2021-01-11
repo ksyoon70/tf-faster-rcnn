@@ -143,6 +143,15 @@ def generate_iou_map(bboxes, gt_boxes):
     gt_y1, gt_x1, gt_y2, gt_x2 = tf.split(gt_boxes, 4, axis=-1)
     # Calculate bbox and ground truth boxes areas
     #squeeze는 차원 중 사이즈가 1인 것을 찾아 스칼라값으로 바꿔 해당 차원을 제거한다.
+    #예제
+    #import tensorflow as tf
+    #import numpy as np
+    #boxes = tf.constant([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]],dtype=tf.int32)
+    #y1, x1, y2, x2 = tf.split(boxes, 4, axis=-1)
+    #area = tf.squeeze((y2 - y1) * (x2 - x1),axis=-1)
+    #print(area.eval)
+    #numpy=array([4, 4, 4, 4])
+    #axis=-1 로 하면 마지막 차원을 삭제한다.   [[4],[4],[4],[4]]  --> [4, 4, 4, 4]  되는 거지.
     gt_area = tf.squeeze((gt_y2 - gt_y1) * (gt_x2 - gt_x1), axis=-1)
     bbox_area = tf.squeeze((bbox_y2 - bbox_y1) * (bbox_x2 - bbox_x1), axis=-1)
     #tf.transpose(전치할 행렬, 차원의 순서, [오퍼레이션 명칭])

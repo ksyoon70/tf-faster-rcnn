@@ -4,4 +4,6 @@ data/*
 trained/*
 VOC2007/*
 VOCdevkit/*
+*.bak
 tf-faster-rcnn.code-workspace
+/.spyproject/config/workspace.ini
