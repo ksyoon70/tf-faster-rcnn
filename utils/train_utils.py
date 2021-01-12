@@ -180,6 +180,28 @@ def calculate_rpn_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     """
     # gt_labels 와 max_index를 stack으로 만들어 scatter_bbox_indices 를 생성한다.
     scatter_bbox_indices = tf.stack([valid_indices[..., 0], valid_max_indices], 1)
+    """
+    Creates a new tensor by applying sparse updates to individual values or slices within a tensor 
+    (initially zero for numeric, empty for string) of the given shape according to indices. 
+    This operator is the inverse of the tf.gather_nd operator which extracts values or slices from a given tensor.
+    예
+    indices = tf.constant([[4], [3], [1], [7]])
+    updates = tf.constant([9, 10, 11, 12])
+    shape = tf.constant([8])
+    scatter = tf.scatter_nd(indices, updates, shape)
+    결과
+    [0, 11, 0, 10, 9, 0, 0, 12]
+    """
+    """
+    tf.fill(dims, value, name=None)
+    스칼라값으로 채워진 텐서를 생성합니다.
+    이 연산은 dims shape의 텐서를 만들고 value로 값을 채웁니다.
+    fill([2, 3], 9) ==> [[9, 9, 9]
+                     [9, 9, 9]]
+    """
+    # tf.shape(valid_indices)[0] 는 valid_indices 텐서의 행의 크기를 구한다.
+    # 그러므로 tf.fill((tf.shape(valid_indices)[0], ), True) 는 valid_indices 텐서의 행 크기의 [True, True,...] 행을 만든다.
+    # iou 만큼의 행렬에서 valid_indices에 해당하는 곳에 True를 채운다. 나머지는 0
     max_pos_mask = tf.scatter_nd(scatter_bbox_indices, tf.fill((tf.shape(valid_indices)[0], ), True), tf.shape(pos_mask))
     pos_mask = tf.logical_or(pos_mask, max_pos_mask)
     pos_mask = randomly_select_xyz_mask(pos_mask, tf.constant([total_pos_bboxes], dtype=tf.int32))
