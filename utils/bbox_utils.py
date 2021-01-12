@@ -155,13 +155,17 @@ def generate_iou_map(bboxes, gt_boxes):
     gt_area = tf.squeeze((gt_y2 - gt_y1) * (gt_x2 - gt_x1), axis=-1)
     bbox_area = tf.squeeze((bbox_y2 - bbox_y1) * (bbox_x2 - bbox_x1), axis=-1)
     #tf.transpose(전치할 행렬, 차원의 순서, [오퍼레이션 명칭])
+    #box의 x1 좌표와 ground truth의 x1 좌표들 중에서 가장 큰것을 찾는다.
     x_top = tf.maximum(bbox_x1, tf.transpose(gt_x1, [0, 2, 1]))
+    #box의 y1 좌표와 ground truth의 y1 좌표들 중에서 가장 큰것을 찾는다.
     y_top = tf.maximum(bbox_y1, tf.transpose(gt_y1, [0, 2, 1]))
     x_bottom = tf.minimum(bbox_x2, tf.transpose(gt_x2, [0, 2, 1]))
     y_bottom = tf.minimum(bbox_y2, tf.transpose(gt_y2, [0, 2, 1]))
     ### Calculate intersection area
+    #box 좌표와 ground truth의 교차 영역을 구한다.
     intersection_area = tf.maximum(x_bottom - x_top, 0) * tf.maximum(y_bottom - y_top, 0)
     ### Calculate union area
+    #tf.expand_dims 차원을 추가한다. 0이면 가장 큰차원 1 이면 그다음, -1이면 마지막
     union_area = (tf.expand_dims(bbox_area, -1) + tf.expand_dims(gt_area, 1) - intersection_area)
     # Intersection over Union
     return intersection_area / union_area

@@ -130,14 +130,55 @@ def calculate_rpn_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     # Get max index value for each column
     max_indices_each_column = tf.argmax(iou_map, axis=1, output_type=tf.int32)
     # IoU map has iou values for every gt boxes and we merge these values column wise
+    #tf.reduce_max 지정한 차원을 따라 최댓값을 계산
     merged_iou_map = tf.reduce_max(iou_map, axis=2)
-    #
+    # 대소를 비교하여 true, false를 리턴한다.
     pos_mask = tf.greater(merged_iou_map, 0.7)
-    #
+    # gt_labels가 -1 이 아니면 true를 반환하고 아니면 false를 반환한다. 즉 true , false의 array를 생성한다.
     valid_indices_cond = tf.not_equal(gt_labels, -1)
+    # 생성된 true, false arrray를 가지고, true 인것에 대한 것만 가지고 ground true gt_labels 인덱스를 생성한다.
     valid_indices = tf.cast(tf.where(valid_indices_cond), tf.int32)
+    # gt_lables가 -1이 아닌 것에 대한 max가 되는 index만을 취한다.
     valid_max_indices = max_indices_each_column[valid_indices_cond]
-    #
+    #아래 코드는 현재 코드를  테스트 하기 위한 코드 이다.
+    """
+    gt_labels = tf.constant([1,2,-1,4])
+    iou_map =  tf.constant([[0.8,0.7],[0.9,0.6],[0.5,0.1],[0.8,0.85]])
+    max_indices_each_column = tf.argmax(iou_map, axis=1, output_type=tf.int32)
+
+    valid_indices_cond = tf.not_equal(gt_labels, -1)
+    #array([ True,  True, False,  True])
+    valid_indices = tf.cast(tf.where(valid_indices_cond), tf.int32)
+    # -1이 아닌것에 대한 인덱스만 뽑아낸다.
+    valid_max_indices = max_indices_each_column[valid_indices_cond]
+    print(valid_max_indices.eval)
+    by 윤경섭
+    """
+    #tf.stack(
+    #values, axis=0, name='stack'
+    #)
+    """
+    stack 예제
+    x = tf.constant([1, 4])
+    y = tf.constant([2, 5])
+    z = tf.constant([3, 6])
+    print("tf.stack([x, y, z])",tf.stack([x, y, z]))
+    
+    결과
+    
+    tf.stack([x, y, z]) tf.Tensor(
+        [[1 4]
+         [2 5]
+         [3 6]], shape=(3, 2), dtype=int32)
+
+    tf.stack([x, y, z], axis=1)
+    print("tf.stack([x, y, z], axis=1)",tf.stack([x, y, z], axis=1))
+    결과
+    tf.stack([x, y, z], axis=1) tf.Tensor(
+        [[1 2 3]
+         [4 5 6]], shape=(2, 3), dtype=int32)
+    """
+    # gt_labels 와 max_index를 stack으로 만들어 scatter_bbox_indices 를 생성한다.
     scatter_bbox_indices = tf.stack([valid_indices[..., 0], valid_max_indices], 1)
     max_pos_mask = tf.scatter_nd(scatter_bbox_indices, tf.fill((tf.shape(valid_indices)[0], ), True), tf.shape(pos_mask))
     pos_mask = tf.logical_or(pos_mask, max_pos_mask)
