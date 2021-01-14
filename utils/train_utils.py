@@ -60,7 +60,36 @@ def randomly_select_xyz_mask(mask, select_xyz):
     outputs:
         selected_valid_mask = (batch_size, [m_bool_value])
     """
+    #tf.reduce_max 	지정된 차원을 따라 최대값을 선택합니다.
     maxval = tf.reduce_max(select_xyz) * 10
+    """
+    tf.random_uniform(shape, minval=0, maxval=None, dtype=tf.float32, seed=None, name=None)
+    
+    균등분포로부터의 난수값을 반환합니다.
+    
+    생성된 값들은 [minval, maxval]구간의 균등분포를 따릅니다. 하한 minval은 구간에 포함(included)되는 반면, 상한인 maxval은 포함되지 않습니다(excluded).
+    
+    실수형의 경우, 기본 구간은 [0, 1)입니다. 정수형의 경우, 적어도 maxval은 명시적으로 지정되어야합니다.
+    
+    정수형의 경우, maxval - minval가 2의 제곱수가 아니라면 정수 난수들은 한쪽으로 약간 치우칩니다. 치우침의 정도는 maxval - minval의 값이 반환값의 구간(2**32 또는 2**64)보다 훨씬 작을 경우엔 작습니다.
+    인자:
+    
+        shape: 정수값의 D-1 텐서 또는 파이썬 배열. 반환값 텐서의 shape입니다.
+        minval: 0-D 텐서 또는 dtype타입의 파이썬 값. 난수값 생성 구간의 하한입니다. 기본값은 0입니다.
+        maxval: 0-D 텐서 또는 dtype타입의 파이썬 값. 난수값 생성 구간의 상한입니다. dtype이 실수형일 경우 기본값은 1입니다.
+        dtype: 반환값의 타입: float32, float64, int32, 또는 int64.
+        seed: 파이썬 정수. 분포의 난수 시드값을 생성하는데에 사용됩니다. 동작 방식은 set_random_seed를 보십시오.
+        name: 연산의 명칭 (선택사항).
+    
+    반환값:
+    
+    균등 난수값들로 채워진 shape으로 정해진 텐서.
+    예외:
+
+    ValueError: dtype이 정수형인데 maxval이 지정되지 않을 경우 발생합니다.
+
+    """
+    # mask 텐서 모양으로 최소가 1 최대가 maxval인 텐서를 만듬; 즉 select_xyz의 최대값(128)에 10을 곱한 것에 대한 random uniform 텐서를 만듬
     random_mask = tf.random.uniform(tf.shape(mask), minval=1, maxval=maxval, dtype=tf.int32)
     multiplied_mask = tf.cast(mask, tf.int32) * random_mask
     sorted_mask = tf.argsort(multiplied_mask, direction="DESCENDING")
@@ -180,6 +209,10 @@ def calculate_rpn_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     """
     # gt_labels 와 max_index를 stack으로 만들어 scatter_bbox_indices 를 생성한다.
     scatter_bbox_indices = tf.stack([valid_indices[..., 0], valid_max_indices], 1)
+    # tf.scatter_nd(
+    #   indices, updates, shape, name=None
+    #)
+    # Scatter updates into a new tensor according to indices.
     """
     Creates a new tensor by applying sparse updates to individual values or slices within a tensor 
     (initially zero for numeric, empty for string) of the given shape according to indices. 
@@ -203,7 +236,9 @@ def calculate_rpn_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     # 그러므로 tf.fill((tf.shape(valid_indices)[0], ), True) 는 valid_indices 텐서의 행 크기의 [True, True,...] 행을 만든다.
     # iou 만큼의 행렬에서 valid_indices에 해당하는 곳에 True를 채운다. 나머지는 0
     max_pos_mask = tf.scatter_nd(scatter_bbox_indices, tf.fill((tf.shape(valid_indices)[0], ), True), tf.shape(pos_mask))
+    #logic or 연산을 수행한다.
     pos_mask = tf.logical_or(pos_mask, max_pos_mask)
+    #total_pos_bboxes = 128
     pos_mask = randomly_select_xyz_mask(pos_mask, tf.constant([total_pos_bboxes], dtype=tf.int32))
     #
     pos_count = tf.reduce_sum(tf.cast(pos_mask, tf.int32), axis=-1)
